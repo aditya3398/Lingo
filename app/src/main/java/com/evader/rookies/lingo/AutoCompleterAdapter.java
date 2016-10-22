@@ -1,21 +1,6 @@
 package com.evader.rookies.lingo;
 
 import android.content.Context;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Filter;
-import android.widget.Filterable;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.concurrent.TimeUnit;
-
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,7 +19,6 @@ import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.AutocompletePredictionBuffer;
 import com.google.android.gms.location.places.Places;
-import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.util.ArrayList;
@@ -43,9 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by bshah on 4/18/2016.
- * The autocomplete adapter
+ * The adapter
  */
-public class AutocompleteAdapter extends RecyclerView.Adapter<AutocompleteAdapter.PredictionHolder> implements Filterable {
+public class AutoCompleterAdapter extends RecyclerView.Adapter<AutoCompleterAdapter.PredictionHolder> implements Filterable {
 
     private ArrayList<PlaceAutocomplete> mResultList;
     private GoogleApiClient mGoogleApiClient;
@@ -55,8 +39,8 @@ public class AutocompleteAdapter extends RecyclerView.Adapter<AutocompleteAdapte
     private Context mContext;
     private int layout;
 
-    public AutocompleteAdapter(Context context, int resource, GoogleApiClient googleApiClient,
-                               LatLngBounds bounds, AutocompleteFilter filter) {
+    public AutoCompleterAdapter(Context context, int resource, GoogleApiClient googleApiClient,
+                                LatLngBounds bounds, AutocompleteFilter filter) {
         mContext = context;
         layout = resource;
         mGoogleApiClient = googleApiClient;
@@ -226,4 +210,3 @@ public class AutocompleteAdapter extends RecyclerView.Adapter<AutocompleteAdapte
     }
 
 }
-

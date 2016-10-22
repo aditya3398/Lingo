@@ -1,14 +1,11 @@
 package com.evader.rookies.lingo;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,7 +14,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -26,30 +22,24 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.PlaceBuffer;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 
-public class MainActivity extends AppCompatActivity implements
-        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     //UI Stuff
     private EditText autocomplete_address;
-    private AutocompleteAdapter autocompleteAdapter;
+    private AutoCompleterAdapter autoCompleterAdapter;
     private RecyclerView recyclerView;
     private LinearLayoutManager linearLayoutManager;
     private ImageView clearEditView;
@@ -87,24 +77,25 @@ public class MainActivity extends AppCompatActivity implements
                 getPackageManager().checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, getPackageName()) == PackageManager.PERMISSION_GRANTED) {
             Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             currentlocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            currentLocationBounds = new LatLngBounds(new LatLng(mLastLocation.getLatitude()-5, mLastLocation.getLongitude()-5),
-                                                    new LatLng(mLastLocation.getLatitude()+5, mLastLocation.getLongitude()+5));
+            currentLocationBounds = new LatLngBounds(new LatLng(mLastLocation.getLatitude()-3, mLastLocation.getLongitude()-3),
+                                                    new LatLng(mLastLocation.getLatitude()+3, mLastLocation.getLongitude()+3));
         }
         else {
             currentlocation = new LatLng(42.186133, -71.309194); //defaults to the CVS in Medfield
+            currentLocationBounds = new LatLngBounds(new LatLng(42.186133-3, -71.309194-3),
+                    new LatLng(42.186133+3, -71.309194+3));
         }
         mGoogleMap = mMapView.getMap();
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mGoogleMap.setBuildingsEnabled(false);
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 6));
 
-
         autocomplete_address = (EditText) findViewById(R.id.autocomplete_textview);
-        autocompleteAdapter = new AutocompleteAdapter(this, R.layout.search_row, mGoogleApiClient, NEWENGLANDBOUNDS, null);
+        autoCompleterAdapter = new AutoCompleterAdapter(this, R.layout.search_row, mGoogleApiClient, currentLocationBounds, null);
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(autocompleteAdapter);
+        recyclerView.setAdapter(autoCompleterAdapter);
         recyclerView.setVisibility(View.GONE);
 
         autocomplete_address.addTextChangedListener(new TextWatcher() {
@@ -116,12 +107,11 @@ public class MainActivity extends AppCompatActivity implements
                 recyclerView.setVisibility(View.VISIBLE);
                 clearEditView.setVisibility(View.VISIBLE);
                 if (!s.toString().equals("") && mGoogleApiClient.isConnected()) {
-                    autocompleteAdapter.getFilter().filter(s.toString());
+                    autoCompleterAdapter.getFilter().filter(s.toString());
                 }else if(!mGoogleApiClient.isConnected()){
                     String API_NOT_CONNECTED = getResources().getString(R.string.API_not_connected);
                     String GENERIC_ERROR = getResources().getString(R.string.generic_error);
-                    Toast.makeText(context, API_NOT_CONNECTED, Toast.LENGTH_SHORT).show();
-                    Log.d("NEODEBUG", GENERIC_ERROR);
+                    Toast.makeText(MainActivity.this, API_NOT_CONNECTED, Toast.LENGTH_SHORT).show();
                 }
                 else{
                     clearEditView.setVisibility(View.GONE);
@@ -133,12 +123,11 @@ public class MainActivity extends AppCompatActivity implements
         });
 
         recyclerView.addOnItemTouchListener(
-                new RecyclerItemClickListener(context, new RecyclerItemClickListener.OnItemClickListener() {
+                new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-                        final AutocompleteAdapter.PlaceAutocomplete item = autocompleteAdapter.getItem(position);
+                        final AutoCompleterAdapter.PlaceAutocomplete item = autoCompleterAdapter.getItem(position);
                         final String placeId = String.valueOf(item.placeId);
-                        Log.d("NEODEBUG", "Autocomplete item selected: " + item.description);
                         /*
                              Issue a request to the Places Geo Data API to retrieve a Place object with additional details about the place.
                          */
@@ -152,27 +141,18 @@ public class MainActivity extends AppCompatActivity implements
                                     //Do the things here on Click.....
                                     double lat = places.get(0).getLatLng().latitude;
                                     double lng = places.get(0).getLatLng().longitude;
-                                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 13));
-                                    googleMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
+                                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 13));
+                                    mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
                                     autocomplete_address.setText(item.description);
                                     recyclerView.setVisibility(View.GONE);
-                                    saveUrl(lat, lng);
+                                    //TODO should we just move on to the next activit here?
                                     final Handler handler = new Handler();
-                                    handler.postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            //Do something after 3000ms
-                                            ((MainActivity)getActivity()).movePagerAdapter(1);
-                                        }
-                                    }, 3000);
                                 }else {
                                     String GENERIC_ERROR = getResources().getString(R.string.generic_error);
                                     Toast.makeText(MainActivity.this, GENERIC_ERROR, Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
-                        Log.d("NEODEBUG", "Clicked: " + item.description);
-                        Log.d("NEODEBUG", "Called getPlaceById to get Place details for " + item.placeId);
                     }
                 })
         );
@@ -218,26 +198,7 @@ public class MainActivity extends AppCompatActivity implements
 
     //for the places api
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        if (mLastLocation != null) {
-            latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            MarkerOptions markerOptions = new MarkerOptions();
-            markerOptions.position(latLng);
-            markerOptions.title("Current Position");
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-            currLocationMarker = mGoogleMap.addMarker(markerOptions);
-        }
-
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(5000); //5 seconds
-        mLocationRequest.setFastestInterval(3000); //3 seconds
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        //mLocationRequest.setSmallestDisplacement(0.1F); //1/10 meter
-
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-    }
+    public void onConnected(@Nullable Bundle bundle) { Log.d("NEODEBUG", "Connection Connected");}
 
     @Override
     public void onConnectionSuspended(int i) {
