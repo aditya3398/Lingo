@@ -3,6 +3,7 @@ package com.evader.rookies.lingo;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -33,6 +35,7 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import android.support.v7.widget.Toolbar;
 
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
@@ -41,7 +44,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private EditText autocomplete_address;
     private AutoCompleterAdapter autoCompleterAdapter;
     private RecyclerView recyclerView;
-    private LinearLayoutManager linearLayoutManager;
     private ImageView clearEditView;
 
     //Maps API stuff
@@ -55,6 +57,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        try{
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        } catch(NullPointerException e){
+            Log.d("SHIT", e.toString());
+        }
 
         //Starting the map
         mMapView = (MapView) findViewById(R.id.mapView);
@@ -89,12 +100,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mGoogleMap = mMapView.getMap();
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mGoogleMap.setBuildingsEnabled(false);
-        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 6));
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentlocation, 15));
 
         autocomplete_address = (EditText) findViewById(R.id.autocomplete_textview);
         autoCompleterAdapter = new AutoCompleterAdapter(this, R.layout.search_row, mGoogleApiClient, currentLocationBounds, null);
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        linearLayoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(autoCompleterAdapter);
         recyclerView.setVisibility(View.GONE);
@@ -142,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                                     //Do the things here on Click.....
                                     double lat = places.get(0).getLatLng().latitude;
                                     double lng = places.get(0).getLatLng().longitude;
-                                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 13));
+                                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 15));
                                     mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
                                     autocomplete_address.setText(item.description);
                                     recyclerView.setVisibility(View.GONE);
