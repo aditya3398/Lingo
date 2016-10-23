@@ -1,12 +1,17 @@
 <resources>
-    <string name="app_name">Lingo</string>
+    <string name="app_name">Lingo Lollipop</string>
 
-    <string name = "google_maps_key"> AIzaSyAxlhpUzmjAzGZfrFowL5fyfxASzckhfRY</string>
+    <string name = "google_maps_key">AIzaSyDvT1YC8EZ8hNwzAAVPwFFpgjKqax9KkmQ</string>
 
     <string name="enter_address">Enter your address</string>
     <string name="API_not_connected">Google API not connected</string>
     <string name="generic_error">Oh no&#8230; Something seems to have gone wrong. I\'m sorry!</string>
     <string name="PlacesTag">Google Places Auto Complete</string>
 
+    <string name="app_logo_description">Lingo Lollipop Logo</string>
+    <string name="moveNextToAnalysis">Next</string>
+
+    <string name="intro_descriptions">Welcome to Lingo Lollipop! As freshmen from the north, we noticed that one of the disorienting parts of moving to a new place is the slang. This app helps reduce the confusion of living somewhere new by 1) Getting tweets within 25 miles of that area 2) Process through the data using machine learning to determine slang 3) Find definitions through websites like UrbanDictionary 4) Present the information in a sweet way for you :)</string>
+    <string name="intro_cover_description">A cover to emphasize the introduction.</string>
 </resources>
 
