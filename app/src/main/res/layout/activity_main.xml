@@ -18,13 +18,22 @@
         android:background="?attr/colorPrimary">
 
         <ImageView
-            android:id="@+id/toolbar_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@mipmap/ic_launcher"
+            android:id="@+id/toolbar_icon"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/ic_pin"
             android:padding="5dp"
             android:layout_gravity="center"
-            />
+            android:contentDescription="@string/app_logo_description"/>
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/moveNextToAnalysis"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/moveNextToAnalysis"
+            android:layout_gravity="center"
+            android:theme="@style/AppTheme.BorderlessButton"/>
 
     </android.support.v7.widget.Toolbar>
 
@@ -72,6 +81,23 @@
             android:layout_below="@+id/autocomplete_textview"
             android:layout_marginTop="10dp"
             android:scrollbars="vertical" />
+
+        <ImageView
+            android:id="@+id/darkCover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@color/colorDarkTransparent"
+            android:contentDescription="@string/intro_cover_description"/>
+
+        <TextView
+            android:id="@+id/darkCoverText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/intro_descriptions"
+            android:textColor="@color/colorWhite"
+            android:fontFamily="sans-serif-condensed"
+            android:padding="10dp"
+            android:textSize="50sp" />
 
     </RelativeLayout>
 

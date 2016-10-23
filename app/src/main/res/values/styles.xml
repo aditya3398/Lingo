@@ -7,4 +7,9 @@
         <item name="colorAccent">@color/colorPrimary</item>
     </style>
 
+    <style name="AppTheme.BorderlessButton" parent="Widget.AppCompat.Button.Borderless.Colored">
+        <item name="android:textColor">@color/colorWhite</item>
+        <item name="colorButtonNormal">@color/colorPrimaryDark</item>
+    </style>
+
 </resources>
