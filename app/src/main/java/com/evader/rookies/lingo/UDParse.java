@@ -1,4 +1,5 @@
 package com.evader.rookies.lingo;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.jsoup.*;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 
 /**
  * Created by adityanadkarni on 10/22/16.
+ * useful functions
  */
 public class UDParse {
     public static String getTheDefinitionYouNeed(String word) {
@@ -26,8 +28,11 @@ public class UDParse {
             Element e = document.select("class.meaning").first();
             str = e.text();
         }
+        catch(NullPointerException e){
+            Log.d("LINGOLOG", e.getMessage());
+        }
         catch (IOException e) {
-            e.printStackTrace();
+            Log.d("LINGOLOG", e.getMessage());
         }
         return str;
     }

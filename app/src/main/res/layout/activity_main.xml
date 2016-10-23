@@ -42,6 +42,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <LinearLayout
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:layout_width="0px"
+            android:layout_height="0px"/>
+
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -55,7 +61,9 @@
             android:background="@android:color/white"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+            android:layout_alignParentStart="true"
+            android:nextFocusUp="@id/autocomplete_textview"
+            android:nextFocusLeft="@id/autocomplete_textview"/>
 
         <ImageView
             android:id="@+id/clearEditView"
@@ -97,7 +105,7 @@
             android:textColor="@color/colorWhite"
             android:fontFamily="sans-serif-condensed"
             android:padding="10dp"
-            android:textSize="50sp" />
+            android:textSize="60sp" />
 
     </RelativeLayout>
 

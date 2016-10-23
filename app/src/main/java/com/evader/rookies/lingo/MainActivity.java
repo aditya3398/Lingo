@@ -1,13 +1,17 @@
 package com.evader.rookies.lingo;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SlidingPaneLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,8 +19,11 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,6 +34,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.PlaceBuffer;
@@ -38,14 +46,38 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import android.support.v7.widget.Toolbar;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
 
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
-    double lat;
-    double lng;
+    String largeString = "";
+    LatLng latLng1;
+    ArrayList<UrbanDefinition> termadefs;
 
     //UI Stuff
     private EditText autocomplete_address;
@@ -57,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected GoogleApiClient mGoogleApiClient;
     MapView mMapView;
     GoogleMap mGoogleMap;
-    LocationRequest mLocationRequest;
 
 
     @Override
@@ -91,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         moveOnToAnlysis.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //do something
+                new DownloadTwitterTask().execute(latLng1);
             }
         });
 
@@ -185,14 +216,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             public void onResult(PlaceBuffer places) {
                                 if(places.getCount()==1){
                                     //Do the things here on Click.....
-                                    lat = places.get(0).getLatLng().latitude;
-                                    lng = places.get(0).getLatLng().longitude;
+                                    double lat = places.get(0).getLatLng().latitude;
+                                    double lng = places.get(0).getLatLng().longitude;
+                                    latLng1 = new LatLng(lat, lng);
                                     mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 15));
                                     mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
                                     autocomplete_address.setText(item.description);
                                     recyclerView.setVisibility(View.GONE);
                                     logo.setVisibility(View.GONE);
                                     moveOnToAnlysis.setVisibility(View.VISIBLE);
+                                    autocomplete_address.clearFocus();
+                                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
                                 }else {
                                     String GENERIC_ERROR = getResources().getString(R.string.generic_error);
                                     Toast.makeText(MainActivity.this, GENERIC_ERROR, Toast.LENGTH_SHORT).show();
@@ -213,6 +248,170 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 recyclerView.setVisibility(View.GONE);
             }
         });
+    }
+
+    // Uses an AsyncTask to download a Twitter user's timeline
+    private class DownloadTwitterTask extends AsyncTask<LatLng, Void, String> {
+        final static String CONSUMER_KEY = "pPEuCKEc4qBjxh6ZznOlGIjIk";
+        final static String CONSUMER_SECRET = "8Rh7wkKr3SH6Zy5r8Kf6Hnr8JVqag5cpgk63sQmYpdZuirBQqW";
+        final static String TwitterTokenURL = "https://api.twitter.com/oauth2/token";
+        final static String TwitterStreamURL = "https://api.twitter.com/1.1/search/tweets.json?geocode=";
+
+        private String getJSONByLocation(LatLng latLng) {
+            String results = null;
+
+            // Step 1: Encode consumer key and secret
+            try {
+                // URL encode the consumer key and secret
+                String urlApiKey = URLEncoder.encode(CONSUMER_KEY, "UTF-8");
+                String urlApiSecret = URLEncoder.encode(CONSUMER_SECRET, "UTF-8");
+
+                // Concatenate the encoded consumer key, a colon character, and the
+                // encoded consumer secret
+                String combined = urlApiKey + ":" + urlApiSecret;
+
+                // Base64 encode the string
+                String base64Encoded = Base64.encodeToString(combined.getBytes(), Base64.NO_WRAP);
+
+                // Step 2: Obtain a bearer token
+                HttpPost httpPost = new HttpPost(TwitterTokenURL);
+                httpPost.setHeader("Authorization", "Basic " + base64Encoded);
+                httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+                httpPost.setEntity(new StringEntity("grant_type=client_credentials"));
+                String rawAuthorization = getResponseBody(httpPost);
+                Authenticated auth = jsonToAuthenticated(rawAuthorization);
+
+                // Applications should verify that the value associated with the
+                // token_type key of the returned object is bearer
+                if (auth != null && auth.token_type.equals("bearer")) {
+
+                    // Step 3: Authenticate API requests with bearer token
+                    HttpGet httpGet = new HttpGet(TwitterStreamURL + latLng.latitude + "%2C" + latLng.longitude + "%2C5mi&count=100");
+
+                    // construct a normal HTTPS request and include an Authorization
+                    // header with the value of Bearer <>
+                    httpGet.setHeader("Authorization", "Bearer " + auth.access_token);
+                    httpGet.setHeader("Content-Type", "application/json");
+                    // update the results with the body of the response
+                    results = getResponseBody(httpGet);
+                }
+            } catch (UnsupportedEncodingException ex) {
+                Log.d("LINGOLOG", ex.getMessage());
+            } catch (IllegalStateException ex1) {
+                Log.d("LINGOLOG", ex1.getMessage());
+            }
+            return results;
+        }
+
+        // convert a JSON authentication object into an Authenticated object
+        private Authenticated jsonToAuthenticated(String rawAuthorization) {
+            Authenticated auth = null;
+            if (rawAuthorization != null && rawAuthorization.length() > 0) {
+                try {
+                    Gson gson = new Gson();
+                    auth = gson.fromJson(rawAuthorization, Authenticated.class);
+                } catch (IllegalStateException ex) {
+                    Log.d("LINGOLOG", ex.getMessage());
+                }
+            }
+            return auth;
+        }
+
+        private String getResponseBody(HttpRequestBase request) {
+            StringBuilder sb = new StringBuilder();
+            try {
+
+                DefaultHttpClient httpClient = new DefaultHttpClient(new BasicHttpParams());
+                HttpResponse response = httpClient.execute(request);
+                int statusCode = response.getStatusLine().getStatusCode();
+                String reason = response.getStatusLine().getReasonPhrase();
+
+                if (statusCode == 200) {
+
+                    HttpEntity entity = response.getEntity();
+                    InputStream inputStream = entity.getContent();
+
+                    BufferedReader bReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
+                    String line = null;
+                    while ((line = bReader.readLine()) != null) {
+                        sb.append(line);
+                    }
+                } else {
+                    sb.append(reason);
+                }
+            } catch (UnsupportedEncodingException ex) {
+                Log.d("LINGOLOG", ex.getMessage());
+            } catch (ClientProtocolException ex1) {
+                Log.d("LINGOLOG", ex1.getMessage());
+            } catch (IOException ex2) {
+                Log.d("LINGOLOG", ex2.getMessage());
+            }
+            return sb.toString();
+        }
+
+        // converts a string of JSON data into a Twitter object
+        private Statuses jsonToTwitter(String result) {
+            Log.d("LINGOLOG","Result text: " + result);
+            Statuses statuses = null;
+
+            if (result != null && result.length() > 0) {
+                try {
+                    Gson gson = new Gson();
+                    statuses = gson.fromJson(result, Statuses.class);
+                } catch (IllegalStateException ex) {
+                    // just eat the exception
+                }
+            }
+            return statuses;
+        }
+
+        @Override
+        protected String doInBackground(LatLng... latslongs) {
+            String result = null;
+
+            if (latslongs.length > 0) {
+                result = getJSONByLocation(latslongs[0]);
+            }
+
+            if(result != null){
+                Statuses statuses = jsonToTwitter(result);
+
+                // lets write the results to the console as well
+                //for (int i = 0; i < twits.size(); i++) {
+                //    largeString += twits.get()
+                //}
+                for (Tweet tweet : statuses.twits){
+                    largeString += " " + tweet.getText();
+                }
+            }
+
+            Log.d("LINGOLOG", largeString);
+
+            if(!largeString.equals("")){
+                ArrayList<String> terms = UDParse.tweetsToAnalyze(largeString); //this is beautiful
+                for(int i = 0; i < terms.size(); i++){
+                    try {
+                        termadefs.add(new UrbanDefinition(terms.get(i), UDParse.getTheDefinitionYouNeed(terms.get(i))));
+                    }
+                    catch(NullPointerException e){
+                        Log.d("LINGOLOG", e.getMessage());
+                    }
+                }
+                //holy shit. that was even more beautiful.
+                //yooo it's 7:23am bruh...
+                //we better win this stupid hackathon. i'm tired af
+            }
+
+            return "";
+        }
+
+        // onPostExecute convert the JSON results into a Twitter object (which is an Array list of tweets
+        @Override
+        protected void onPostExecute(String result) {
+            Intent intent = new Intent(getApplicationContext(), SlangActivity.class);
+            intent.putParcelableArrayListExtra("urban_defs", termadefs);
+            startActivity(intent);
+        }
     }
 
     //for the google maps api

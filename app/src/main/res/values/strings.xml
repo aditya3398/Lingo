@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Lingo Lollipop</string>
 
-    <string name = "google_maps_key">AIzaSyDvT1YC8EZ8hNwzAAVPwFFpgjKqax9KkmQ</string>
+    <string name="google_maps_key">AIzaSyDvT1YC8EZ8hNwzAAVPwFFpgjKqax9KkmQ</string>
 
     <string name="enter_address">Enter your address</string>
     <string name="API_not_connected">Google API not connected</string>
