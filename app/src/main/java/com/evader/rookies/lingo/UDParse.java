@@ -17,16 +17,14 @@ public class UDParse {
     public static String getTheDefinitionYouNeed(String word) {
         String url = "http://www.urbandictionary.com/define.php?term=";
         String str = "";
-        for (int x = 0; x < word.length(); x++) {
-            if (word.charAt(x) == ' ') {
-                word = word.substring(0,x) + "+" + word.substring(x + 1, word.length());
-            }
-        }
         url += word;
+        Log.d("LINGOLOG","URL: " + url);
         try {
             Document document = Jsoup.connect(url).get();
-            Element e = document.select("class.meaning").first();
+            Element e = document.select("div.meaning").first();
             str = e.text();
+            Log.d("LINGOLOG","URL: " + e.text());
+            return e.text();
         }
         catch(NullPointerException e){
             Log.d("LINGOLOG", e.getMessage());
@@ -34,7 +32,7 @@ public class UDParse {
         catch (IOException e) {
             Log.d("LINGOLOG", e.getMessage());
         }
-        return str;
+        return "Could not determine the definition.";
     }
     public static ArrayList<String> tweetsToAnalyze(String needsReducing) {
         String [] stopwords = {"a", "are", "as", "at", "because", "but", "by",
@@ -71,13 +69,36 @@ public class UDParse {
                 }
             }
         }
-        for (int d = 0; d< list.size(); d++) {
-            if (list.get(d).equals("")) {
+
+        for (int d = 0; d < list.size(); d++) {
+            if (list.get(d).equals("") || list.get(d).length() < 6) {
                 list.remove(d);
                 d--;
             }
         }
-        return list;
+
+        ArrayList<String> terms = new ArrayList<String>();
+        String current = list.get(0);
+        int counter = 0;
+        for (int e = 0; e <list.size(); e++){
+            if(list.get(e).equals(current)){
+                counter++;
+                if(counter >= 3){
+                    terms.add(list.get(e));
+                    counter = 0;
+                    if(e+1 < list.size()){
+                        current = list.get(e+1);
+                    }
+                }
+            }
+            else {
+                counter = 0;
+                current = list.get(e);
+            }
+        }
+
+
+        return terms;
     }
 
     private static void sortStrings(ArrayList<String> list) {

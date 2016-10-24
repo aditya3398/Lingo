@@ -1,6 +1,7 @@
 package com.evader.rookies.lingo;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -27,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,9 +77,11 @@ import org.apache.http.params.BasicHttpParams;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
+    ImageView logo;
+    Button moveOnToAnlysis;
     String largeString = "";
     LatLng latLng1;
-    ArrayList<UrbanDefinition> termadefs;
+    ArrayList<UrbanDefinition> termadefs = new ArrayList<UrbanDefinition>();
 
     //UI Stuff
     private EditText autocomplete_address;
@@ -89,6 +93,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected GoogleApiClient mGoogleApiClient;
     MapView mMapView;
     GoogleMap mGoogleMap;
+
+    RecyclerView companyCards;
 
 
     @Override
@@ -116,9 +122,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         });
 
-        final ImageView logo = (ImageView) findViewById(R.id.toolbar_icon);
+        logo = (ImageView) findViewById(R.id.toolbar_icon);
 
-        final Button moveOnToAnlysis = (Button) findViewById(R.id.moveNextToAnalysis);
+        moveOnToAnlysis = (Button) findViewById(R.id.moveNextToAnalysis);
         moveOnToAnlysis.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -376,10 +382,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             if(result != null){
                 Statuses statuses = jsonToTwitter(result);
 
-                // lets write the results to the console as well
-                //for (int i = 0; i < twits.size(); i++) {
-                //    largeString += twits.get()
-                //}
                 for (Tweet tweet : statuses.twits){
                     largeString += " " + tweet.getText();
                 }
@@ -394,7 +396,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         termadefs.add(new UrbanDefinition(terms.get(i), UDParse.getTheDefinitionYouNeed(terms.get(i))));
                     }
                     catch(NullPointerException e){
-                        Log.d("LINGOLOG", e.getMessage());
+                        Log.d("LINGOLOG", e.toString());
                     }
                 }
                 //holy shit. that was even more beautiful.
@@ -408,10 +410,24 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         // onPostExecute convert the JSON results into a Twitter object (which is an Array list of tweets
         @Override
         protected void onPostExecute(String result) {
-            Intent intent = new Intent(getApplicationContext(), SlangActivity.class);
-            intent.putParcelableArrayListExtra("urban_defs", termadefs);
-            startActivity(intent);
+            setupCards();
+            moveOnToAnlysis.setVisibility(View.GONE);
+            logo.setVisibility(View.VISIBLE);
         }
+    }
+
+    public void setupCards(){
+        RelativeLayout part1 = (RelativeLayout) findViewById(R.id.mapOne);
+        part1.setVisibility(View.GONE);
+        RelativeLayout part2 = (RelativeLayout) findViewById(R.id.cardviewOne);
+        part2.setVisibility(View.VISIBLE);
+        companyCards = (RecyclerView) findViewById(R.id.definition_recycler);
+        LinearLayoutManager llm = new LinearLayoutManager(getApplicationContext());
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        companyCards.setLayoutManager(llm);
+        CompanyAdapter ca = new CompanyAdapter(termadefs, getApplicationContext()); //todo order companies by price
+        companyCards.setAdapter(ca);
+
     }
 
     //for the google maps api
