@@ -38,38 +38,7 @@ public class UDParse {
         }
         return "Could not determine the definition.";
     }
-    public static ArrayList<String> tweetsToAnalyze(String needsReducing) {
-        //TODO: hashmap implementation <char, string[]>
-        Map<Character, ArrayList<String>> stopwords = new HashMap<>(26, 0.75f);
-        for (int x = 97; x < 123; x++) {
-            stopwords.put((char)x, new ArrayList<String>());
-        }
-        stopwords.get('a').addAll(new ArrayList<String>(Arrays.asList("a", "and", "am", "are", "as", "at")));
-        stopwords.get('b').addAll(new ArrayList<String>(Arrays.asList("because", "but", "by")));
-        stopwords.get('c').addAll(new ArrayList<String>(Arrays.asList("")));
-        stopwords.get('d').addAll(new ArrayList<String>(Arrays.asList("do")));
-        stopwords.get('e').addAll(new ArrayList<String>(Arrays.asList("every", "eight")));
-        stopwords.get('f').addAll(new ArrayList<String>(Arrays.asList("for", "four", "five")));
-        stopwords.get('g').addAll(new ArrayList<String>(Arrays.asList("go")));
-        stopwords.get('h').addAll(new ArrayList<String>(Arrays.asList("here", "how", "have", "he")));
-        stopwords.get('i').addAll(new ArrayList<String>(Arrays.asList("i", "is", "in")));
-        stopwords.get('j').addAll(new ArrayList<String>(Arrays.asList("")));
-        stopwords.get('k').addAll(new ArrayList<String>(Arrays.asList("")));
-        stopwords.get('l').addAll(new ArrayList<String>(Arrays.asList("")));
-        stopwords.get('m').addAll(new ArrayList<String>(Arrays.asList("me", "my")));
-        stopwords.get('n').addAll(new ArrayList<String>(Arrays.asList("nine")));
-        stopwords.get('o').addAll(new ArrayList<String>(Arrays.asList("of","or", "on", "okay", "ok", "our", "one")));
-        stopwords.get('p').addAll(new ArrayList<String>(Arrays.asList("")));
-        stopwords.get('q').addAll(new ArrayList<String>(Arrays.asList("")));
-        stopwords.get('r').addAll(new ArrayList<String>(Arrays.asList("")));
-        stopwords.get('s').addAll(new ArrayList<String>(Arrays.asList("so", "six", "seven")));
-        stopwords.get('t').addAll(new ArrayList<String>(Arrays.asList("the","this", "that", "there", "then", "too", "two", "three", "ten", "them")));
-        stopwords.get('u').addAll(new ArrayList<String>(Arrays.asList("up")));
-        stopwords.get('v').addAll(new ArrayList<String>(Arrays.asList("very")));
-        stopwords.get('w').addAll(new ArrayList<String>(Arrays.asList("we", "was", "what","who", "were", "went", "where", "why", "with", "will")));
-        stopwords.get('x').addAll(new ArrayList<String>(Arrays.asList("")));
-        stopwords.get('y').addAll(new ArrayList<String>(Arrays.asList("you")));
-        stopwords.get('z').addAll(new ArrayList<String>(Arrays.asList("")));
+    public static ArrayList<String> tweetsToAnalyze(String needsReducing, Map<Character, ArrayList<String>> stopwords) {
 
         needsReducing = needsReducing.toLowerCase();
         for (int x = 0; x < needsReducing.length(); x++) {

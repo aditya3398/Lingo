@@ -61,8 +61,11 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -93,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected GoogleApiClient mGoogleApiClient;
     MapView mMapView;
     GoogleMap mGoogleMap;
+    public static Map<Character, ArrayList<String>> stopwords = new HashMap<>(26, 0.75f);
 
     RecyclerView companyCards;
 
@@ -121,7 +125,35 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 darkCoverText.setVisibility(View.GONE);
             }
         });
-
+        for (int x = 97; x < 123; x++) {
+            stopwords.put((char)x, new ArrayList<String>());
+        }
+        stopwords.get('a').addAll(new ArrayList<String>(Arrays.asList("a", "and", "am", "are", "as", "at")));
+        stopwords.get('b').addAll(new ArrayList<String>(Arrays.asList("because", "be", "but", "by")));
+        stopwords.get('c').addAll(new ArrayList<String>(Arrays.asList("")));
+        stopwords.get('d').addAll(new ArrayList<String>(Arrays.asList("do")));
+        stopwords.get('e').addAll(new ArrayList<String>(Arrays.asList("every", "eight")));
+        stopwords.get('f').addAll(new ArrayList<String>(Arrays.asList("for", "four", "five")));
+        stopwords.get('g').addAll(new ArrayList<String>(Arrays.asList("go")));
+        stopwords.get('h').addAll(new ArrayList<String>(Arrays.asList("here", "how", "have", "he")));
+        stopwords.get('i').addAll(new ArrayList<String>(Arrays.asList("i", "is", "in", "it")));
+        stopwords.get('j').addAll(new ArrayList<String>(Arrays.asList("")));
+        stopwords.get('k').addAll(new ArrayList<String>(Arrays.asList("")));
+        stopwords.get('l').addAll(new ArrayList<String>(Arrays.asList("")));
+        stopwords.get('m').addAll(new ArrayList<String>(Arrays.asList("me", "my")));
+        stopwords.get('n').addAll(new ArrayList<String>(Arrays.asList("nine", "not")));
+        stopwords.get('o').addAll(new ArrayList<String>(Arrays.asList("of","or", "on", "okay", "ok", "our", "one")));
+        stopwords.get('p').addAll(new ArrayList<String>(Arrays.asList("")));
+        stopwords.get('q').addAll(new ArrayList<String>(Arrays.asList("")));
+        stopwords.get('r').addAll(new ArrayList<String>(Arrays.asList("")));
+        stopwords.get('s').addAll(new ArrayList<String>(Arrays.asList("so", "six", "seven")));
+        stopwords.get('t').addAll(new ArrayList<String>(Arrays.asList("the","this", "that", "there", "then", "to", "too", "two", "three", "ten", "them")));
+        stopwords.get('u').addAll(new ArrayList<String>(Arrays.asList("up")));
+        stopwords.get('v').addAll(new ArrayList<String>(Arrays.asList("very")));
+        stopwords.get('w').addAll(new ArrayList<String>(Arrays.asList("we", "was", "what","who", "were", "went", "where", "why", "with", "will")));
+        stopwords.get('x').addAll(new ArrayList<String>(Arrays.asList("")));
+        stopwords.get('y').addAll(new ArrayList<String>(Arrays.asList("you")));
+        stopwords.get('z').addAll(new ArrayList<String>(Arrays.asList("")));
         logo = (ImageView) findViewById(R.id.toolbar_icon);
 
         moveOnToAnlysis = (Button) findViewById(R.id.moveNextToAnalysis);
@@ -390,7 +422,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Log.d("LINGOLOG", largeString);
 
             if(!largeString.equals("")){
-                ArrayList<String> terms = UDParse.tweetsToAnalyze(largeString); //this is beautiful
+                ArrayList<String> terms = UDParse.tweetsToAnalyze(largeString, stopwords); //this is beautiful
                 for(int i = 0; i < terms.size(); i++){
                     try {
                         termadefs.add(new UrbanDefinition(terms.get(i), UDParse.getTheDefinitionYouNeed(terms.get(i))));
